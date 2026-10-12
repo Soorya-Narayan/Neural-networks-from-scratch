@@ -1,6 +1,6 @@
 """Neural network learning package from scratch."""
 
-from .dataset import load_mnist, get_batches
+from .dataset import load_mnist, load_fashion_mnist, FASHION_MNIST_CLASSES, get_batches
 from .model import NeuralNetwork, relu, softmax, cross_entropy_loss
 from .deep_model import DeepNeuralNetwork
 from .optimizers import SGDWithMomentum, Adam
@@ -14,6 +14,8 @@ from .visualize import (
 
 __all__ = [
     "load_mnist",
+    "load_fashion_mnist",
+    "FASHION_MNIST_CLASSES",
     "get_batches",
     "NeuralNetwork",
     "DeepNeuralNetwork",

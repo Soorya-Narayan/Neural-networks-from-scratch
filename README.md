@@ -17,7 +17,7 @@ Click on any chapter to read the textbook explanation, inspect the code, run the
 | Chapter | Title & Focus | Architecture & Key Concepts | Status |
 | :---: | :--- | :--- | :---: |
 | **01** | [**Chapter 1: The First Neural Network (MNIST from Scratch)**](chapters/01-first-neural-network-mnist/) | **Dataset**: MNIST ($70,000$ digits)<br>**Model**: 2-layer MLP (784 $\to$ 128 ReLU $\to$ 10 Softmax)<br>**Optimization**: Mini-batch SGD + Momentum<br>**Test Accuracy**: **97.9%** | Completed |
-| **02** | [**Chapter 2: Modern Optimization & Regularization (Adam & Dropout)**](chapters/02-optimization-and-regularization/) | **Focus**: Adam Optimizer, Inverted Dropout, L2 Weight Decay<br>**Model**: Deep 3-layer MLP (784 $\to$ 256 $\to$ 128 $\to$ 10)<br>**Key Result**: Eliminates generalization gap & speeds up convergence | Completed |
+| **02** | [**Chapter 2: Modern Optimization & Regularization (Fashion-MNIST with Adam & Dropout)**](chapters/02-optimization-and-regularization/) | **Dataset**: Fashion-MNIST ($70,000$ clothing items)<br>**Focus**: Adam Optimizer, Inverted Dropout, L2 Weight Decay<br>**Model**: Deep 3-layer MLP (784 $\to$ 256 $\to$ 128 $\to$ 10)<br>**Key Result**: Controls generalization gap on complex clothing garments | Completed |
 | **03** | **Chapter 3: Convolutional Neural Networks (CNNs from Scratch)** | 2D Convolutions, pooling, spatial invariance, image feature maps | *Upcoming* |
 | **04** | **Chapter 4: Autograd Engine** | Building a micrograd-style reverse-mode automatic differentiation DAG | *Upcoming* |
 | **05** | **Chapter 5: Sequence Models (RNNs & LSTMs)** | Hidden states, backpropagation through time, text generation | *Upcoming* |
@@ -38,13 +38,18 @@ Click on any chapter to read the textbook explanation, inspect the code, run the
 
 ---
 
-## Chapter 2: Modern Optimization & Regularization (Adam & Dropout)
+## Chapter 2: Modern Optimization & Regularization (Fashion-MNIST)
 
 👉 **Read the full chapter textbook: [chapters/02-optimization-and-regularization/README.md](chapters/02-optimization-and-regularization/)**
 
+* **Dataset**: Fashion-MNIST (Zalando Research) — 10 clothing categories (T-shirt, Trouser, Pullover, Dress, Coat, Sandal, Shirt, Sneaker, Bag, Ankle boot).
 * **Adam Optimizer**: Combines Momentum (first moment $m_t$) and RMSProp (second moment $v_t$) with bias correction for adaptive per-parameter learning rates.
 * **Inverted Dropout ($p=0.2$)**: Randomly silences 20% of hidden neurons during training to prevent co-adaptation, with $\frac{1}{1 - p}$ scaling.
 * **L2 Weight Decay ($\lambda=10^{-4}$)**: Penalizes large weights to smooth the decision boundary.
+
+| Fashion Clothing Dataset | Confusion Matrix (10 Garments) |
+| :---: | :---: |
+| ![Fashion Items](chapters/02-optimization-and-regularization/plots/sample_fashion_items.png) | ![Confusion Matrix](chapters/02-optimization-and-regularization/plots/fashion_confusion_matrix.png) |
 
 | SGD vs Adam Validation Performance | The Generalization Gap (Overfitting Control) |
 | :---: | :---: |

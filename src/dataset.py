@@ -1,18 +1,19 @@
-"""MNIST Dataset Loader and Preprocessing Pipeline.
+"""Dataset Loaders and Preprocessing Pipeline (MNIST & Fashion-MNIST).
 
-Downloads the standard MNIST handwritten digits dataset (60,000 train, 10,000 test),
-parses the IDX binary format using standard gzip, normalizes pixel intensities,
+Downloads and parses raw IDX byte archives into normalized NumPy arrays,
 and partitions into Train, Validation, and Test subsets.
 """
 
-from typing import Tuple, Generator
+from typing import Tuple, Generator, List
 from pathlib import Path
 import urllib.request
 import gzip
 import numpy as np
 
-# Official PyTorch / S3 mirror for MNIST
-BASE_URL = "https://ossci-datasets.s3.amazonaws.com/mnist/"
+# Official Mirrors
+MNIST_BASE_URL = "https://ossci-datasets.s3.amazonaws.com/mnist/"
+FASHION_BASE_URL = "http://fashion-mnist.s3-website.eu-central-1.amazonaws.com/"
+
 FILES = {
     "train_images": "train-images-idx3-ubyte.gz",
     "train_labels": "train-labels-idx1-ubyte.gz",
@@ -20,16 +21,29 @@ FILES = {
     "test_labels": "t10k-labels-idx1-ubyte.gz",
 }
 
+FASHION_MNIST_CLASSES = [
+    "T-shirt/top",
+    "Trouser",
+    "Pullover",
+    "Dress",
+    "Coat",
+    "Sandal",
+    "Shirt",
+    "Sneaker",
+    "Bag",
+    "Ankle boot",
+]
 
-def download_mnist(data_dir: Path) -> None:
-    """Downloads MNIST compressed archives if they do not exist locally."""
+
+def download_dataset(data_dir: Path, base_url: str) -> None:
+    """Downloads compressed archives from base_url if they do not exist locally."""
     data_dir.mkdir(parents=True, exist_ok=True)
     headers = {"User-Agent": "Mozilla/5.0"}
 
     for name, filename in FILES.items():
         filepath = data_dir / filename
         if not filepath.exists():
-            url = BASE_URL + filename
+            url = base_url + filename
             print(f"Downloading {filename}...")
             req = urllib.request.Request(url, headers=headers)
             with urllib.request.urlopen(req, timeout=30) as resp, open(filepath, "wb") as f:
@@ -38,25 +52,22 @@ def download_mnist(data_dir: Path) -> None:
 
 
 def parse_idx_images(filepath: Path) -> np.ndarray:
-    """Parses MNIST IDX3 image file into a NumPy array of shape (N, 28, 28)."""
+    """Parses an IDX3 image file into a NumPy array of shape (N, 28, 28)."""
     with gzip.open(filepath, "rb") as f:
-        # Header: magic (4 bytes), num_images (4 bytes), rows (4 bytes), cols (4 bytes)
         magic = int.from_bytes(f.read(4), "big")
         num_images = int.from_bytes(f.read(4), "big")
         rows = int.from_bytes(f.read(4), "big")
         cols = int.from_bytes(f.read(4), "big")
         assert magic == 2051, f"Invalid magic number {magic} in {filepath.name}"
 
-        # Raw pixel bytes (0 - 255 uint8)
         buf = f.read()
         data = np.frombuffer(buf, dtype=np.uint8)
         return data.reshape(num_images, rows, cols)
 
 
 def parse_idx_labels(filepath: Path) -> np.ndarray:
-    """Parses MNIST IDX1 label file into a 1D NumPy array of shape (N,)."""
+    """Parses an IDX1 label file into a 1D NumPy array of shape (N,)."""
     with gzip.open(filepath, "rb") as f:
-        # Header: magic (4 bytes), num_items (4 bytes)
         magic = int.from_bytes(f.read(4), "big")
         num_items = int.from_bytes(f.read(4), "big")
         assert magic == 2049, f"Invalid magic number {magic} in {filepath.name}"
@@ -71,42 +82,61 @@ def load_mnist(
     flatten: bool = True,
     normalize: bool = True,
 ) -> Tuple[np.ndarray, np.ndarray, np.ndarray, np.ndarray, np.ndarray, np.ndarray]:
-    """Loads and preprocesses MNIST into Train, Validation, and Test sets.
-
-    Data preprocessing:
-        1. Normalization: Scales pixels from uint8 [0, 255] to float32 [0.0, 1.0].
-           Ensures zero-centered gradients and prevents activation saturation.
-        2. Flattening: Reshapes (28, 28) image matrices into (784,) 1D feature vectors.
-        3. Validation Split: Reserves 10,000 training images strictly for tuning/monitoring.
-
-    Args:
-        data_dir: Path to directory for cached gzip files.
-        val_size: Number of training images to reserve for validation (default: 10,000).
-        flatten: If True, returns images flattened to (N, 784); else (N, 28, 28).
-        normalize: If True, scales pixel values to range [0.0, 1.0].
-
-    Returns:
-        Tuple: (X_train, y_train, X_val, y_val, X_test, y_test)
-    """
+    """Loads and preprocesses MNIST Handwritten Digits."""
     path = Path(data_dir)
-    download_mnist(path)
+    download_dataset(path, MNIST_BASE_URL)
 
-    # 1. Parse raw images and labels
     raw_train_images = parse_idx_images(path / FILES["train_images"])
     raw_train_labels = parse_idx_labels(path / FILES["train_labels"])
     raw_test_images = parse_idx_images(path / FILES["test_images"])
     raw_test_labels = parse_idx_labels(path / FILES["test_labels"])
 
-    # 2. Normalize to [0.0, 1.0]
     train_images = raw_train_images.astype(np.float32) / 255.0 if normalize else raw_train_images
     test_images = raw_test_images.astype(np.float32) / 255.0 if normalize else raw_test_images
 
-    # 3. Flatten if requested
     if flatten:
         train_images = train_images.reshape(train_images.shape[0], -1)
         test_images = test_images.reshape(test_images.shape[0], -1)
 
-    # 4. Partition 60,000 into Train (50,000) and Validation (10,000)
+    train_size = len(train_images) - val_size
+    X_train = train_images[:train_size]
+    y_train = raw_train_labels[:train_size]
+    X_val = train_images[train_size:]
+    y_val = raw_train_labels[train_size:]
+
+    X_test = test_images
+    y_test = raw_test_labels
+
+    return X_train, y_train, X_val, y_val, X_test, y_test
+
+
+def load_fashion_mnist(
+    data_dir: str = "data/fashion_mnist",
+    val_size: int = 10000,
+    flatten: bool = True,
+    normalize: bool = True,
+) -> Tuple[np.ndarray, np.ndarray, np.ndarray, np.ndarray, np.ndarray, np.ndarray]:
+    """Loads and preprocesses Fashion-MNIST (Zalando Clothing Articles).
+
+    10 Categories:
+        0: T-shirt/top, 1: Trouser, 2: Pullover, 3: Dress, 4: Coat,
+        5: Sandal, 6: Shirt, 7: Sneaker, 8: Bag, 9: Ankle boot
+    """
+    path = Path(data_dir)
+    download_dataset(path, FASHION_BASE_URL)
+
+    raw_train_images = parse_idx_images(path / FILES["train_images"])
+    raw_train_labels = parse_idx_labels(path / FILES["train_labels"])
+    raw_test_images = parse_idx_images(path / FILES["test_images"])
+    raw_test_labels = parse_idx_labels(path / FILES["test_labels"])
+
+    train_images = raw_train_images.astype(np.float32) / 255.0 if normalize else raw_train_images
+    test_images = raw_test_images.astype(np.float32) / 255.0 if normalize else raw_test_images
+
+    if flatten:
+        train_images = train_images.reshape(train_images.shape[0], -1)
+        test_images = test_images.reshape(test_images.shape[0], -1)
+
     train_size = len(train_images) - val_size
     X_train = train_images[:train_size]
     y_train = raw_train_labels[:train_size]
@@ -125,17 +155,7 @@ def get_batches(
     batch_size: int = 64,
     shuffle: bool = True,
 ) -> Generator[Tuple[np.ndarray, np.ndarray], None, None]:
-    """Yields mini-batches of data for gradient descent.
-
-    Args:
-        X: Feature matrix of shape (N, D).
-        y: Target label array of shape (N,).
-        batch_size: Number of samples per gradient update.
-        shuffle: If True, shuffles dataset before iterating.
-
-    Yields:
-        Tuple[np.ndarray, np.ndarray]: Mini-batch (X_batch, y_batch).
-    """
+    """Yields mini-batches of data for gradient descent."""
     n_samples = len(X)
     indices = np.arange(n_samples)
 
