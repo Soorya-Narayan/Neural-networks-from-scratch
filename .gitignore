@@ -56,3 +56,7 @@ Icon
 
 # MkDocs build output
 site/
+
+# Dataset cache
+data/
+*.csv
