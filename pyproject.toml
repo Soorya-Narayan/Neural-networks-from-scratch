@@ -1,0 +1,51 @@
+[build-system]
+requires = ["setuptools>=68.0.0", "wheel"]
+build-backend = "setuptools.build_meta"
+
+[project]
+name = "neural-networks-from-scratch"
+version = "0.1.0"
+description = "A textbook-style guide to deep learning from first principles: building a neural network toolkit from scratch in NumPy, transitioning to PyTorch, and mastering modern architectures."
+readme = "README.md"
+requires-python = ">=3.11"
+license = { text = "MIT" }
+authors = [
+    { name = "Soorya Narayan" }
+]
+keywords = [
+    "deep-learning",
+    "neural-networks",
+    "machine-learning",
+    "numpy",
+    "pytorch",
+    "education",
+    "from-scratch"
+]
+dependencies = [
+    "numpy>=2.0.0",
+    "matplotlib>=3.9.0",
+    "torch>=2.4.0",
+]
+
+[project.optional-dependencies]
+dev = [
+    "pytest>=8.0.0",
+    "ipykernel>=6.29.0",
+]
+docs = [
+    "mkdocs-material>=9.5.0",
+    "pymdown-extensions>=10.7.0",
+]
+
+[tool.setuptools.packages.find]
+include = ["nnlib*"]
+
+[tool.pytest.ini_options]
+minversion = "8.0"
+testpaths = ["tests"]
+python_files = ["test_*.py"]
+python_functions = ["test_*"]
+addopts = "-v --strict-markers"
+filterwarnings = [
+    "ignore::DeprecationWarning",
+]
