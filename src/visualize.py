@@ -9,7 +9,7 @@ Generates high-resolution plots to visually understand:
 """
 
 from pathlib import Path
-from typing import Dict, List, Optional
+from typing import Dict, List, Optional, Union
 import numpy as np
 import matplotlib.pyplot as plt
 
@@ -84,34 +84,44 @@ def plot_confusion_matrix(
     y_true: np.ndarray,
     y_pred: np.ndarray,
     num_classes: int = 10,
-    filename: str = "plots/confusion_matrix.png",
+    filename: Union[str, Path] = "plots/confusion_matrix.png",
+    class_names: Optional[list] = None,
+    title: str = "Confusion Matrix (Test Set)",
 ) -> None:
-    """Plots a 10x10 confusion matrix heatmap across all digit classes."""
-    Path(filename).parent.mkdir(parents=True, exist_ok=True)
+    """Plots a confusion matrix heatmap with optional class labels."""
+    filename = Path(filename)
+    filename.parent.mkdir(parents=True, exist_ok=True)
 
     cm = np.zeros((num_classes, num_classes), dtype=int)
     for t, p in zip(y_true, y_pred):
         cm[t, p] += 1
 
-    fig, ax = plt.subplots(figsize=(8, 7))
+    fig, ax = plt.subplots(figsize=(8.5, 7.5))
     im = ax.imshow(cm, cmap="Blues", interpolation="nearest")
     plt.colorbar(im, ax=ax, fraction=0.046, pad=0.04)
 
     ax.set_xticks(range(num_classes))
     ax.set_yticks(range(num_classes))
-    ax.set_xlabel("Predicted Digit", fontsize=12, fontweight="bold")
-    ax.set_ylabel("True Digit", fontsize=12, fontweight="bold")
-    ax.set_title("Confusion Matrix (MNIST Test Set)", fontsize=13, fontweight="bold")
+    if class_names is not None:
+        ax.set_xticklabels(class_names, rotation=45, ha="right", fontsize=9)
+        ax.set_yticklabels(class_names, fontsize=9)
+        ax.set_xlabel("Predicted Class", fontsize=11, fontweight="bold")
+        ax.set_ylabel("True Class", fontsize=11, fontweight="bold")
+    else:
+        ax.set_xlabel("Predicted Label", fontsize=11, fontweight="bold")
+        ax.set_ylabel("True Label", fontsize=11, fontweight="bold")
+
+    ax.set_title(title, fontsize=13, fontweight="bold", pad=12)
 
     # Add numeric counts inside each cell
     thresh = cm.max() / 2.0
     for i in range(num_classes):
         for j in range(num_classes):
             color = "white" if cm[i, j] > thresh else "black"
-            ax.text(j, i, format(cm[i, j], "d"), ha="center", va="center", color=color, fontsize=9)
+            ax.text(j, i, format(cm[i, j], "d"), ha="center", va="center", color=color, fontsize=8)
 
     plt.tight_layout()
-    plt.savefig(filename, dpi=200, bbox_inches="tight")
+    plt.savefig(str(filename), dpi=200, bbox_inches="tight")
     plt.close()
     print(f"Saved: {filename}")
 

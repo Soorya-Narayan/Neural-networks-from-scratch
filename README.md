@@ -18,7 +18,7 @@ Click on any chapter to read the textbook explanation, inspect the code, run the
 | :---: | :--- | :--- | :---: |
 | **01** | [**Chapter 1: The First Neural Network (MNIST from Scratch)**](chapters/01-first-neural-network-mnist/) | **Dataset**: MNIST ($70,000$ digits)<br>**Model**: 2-layer MLP (784 $\to$ 128 ReLU $\to$ 10 Softmax)<br>**Optimization**: Mini-batch SGD + Momentum<br>**Test Accuracy**: **97.9%** | Completed |
 | **02** | [**Chapter 2: Modern Optimization & Regularization (Fashion-MNIST with Adam & Dropout)**](chapters/02-optimization-and-regularization/) | **Dataset**: Fashion-MNIST ($70,000$ clothing items)<br>**Focus**: Adam Optimizer, Inverted Dropout, L2 Weight Decay<br>**Model**: Deep 3-layer MLP (784 $\to$ 256 $\to$ 128 $\to$ 10)<br>**Key Result**: Controls generalization gap on complex clothing garments | Completed |
-| **03** | **Chapter 3: Convolutional Neural Networks (CNNs from Scratch)** | 2D Convolutions, pooling, spatial invariance, image feature maps | *Upcoming* |
+| **03** | [**Chapter 3: Convolutional Neural Networks (CNNs from Scratch)**](chapters/03-convolutional-neural-networks/) | **Dataset**: Fashion-MNIST ($70,000$ images)<br>**Model**: 2-stage ConvNet (Conv2D $\to$ MaxPool $\to$ Conv2D $\to$ MaxPool $\to$ FC)<br>**Concepts**: 2D Convolutions, spatial invariance, im2col, hierarchical feature maps<br>**Test Accuracy**: **88.6%** | Completed |
 | **04** | **Chapter 4: Autograd Engine** | Building a micrograd-style reverse-mode automatic differentiation DAG | *Upcoming* |
 | **05** | **Chapter 5: Sequence Models (RNNs & LSTMs)** | Hidden states, backpropagation through time, text generation | *Upcoming* |
 | **06** | **Chapter 6: Attention & Transformers (Mini-GPT)** | Scaled dot-product attention, multi-head attention on Shakespeare | *Upcoming* |
@@ -57,6 +57,25 @@ Click on any chapter to read the textbook explanation, inspect the code, run the
 
 ---
 
+## Chapter 3: Convolutional Neural Networks (CNNs from Scratch)
+
+👉 **Read the full chapter textbook: [chapters/03-convolutional-neural-networks/README.md](chapters/03-convolutional-neural-networks/)**
+
+* **Translation Invariance**: Solves the blind spot of flat MLPs by sliding shared $3 \times 3$ filter templates across the image.
+* **Biological Hierarchy**: Inspired by Hubel & Wiesel's 1959 Nobel discovery, extracting low-level edges in Conv1 and composite garment parts in Conv2.
+* **High-Performance `im2col`**: Vectorized image-to-column reshaping turning 4D convolutions into single BLAS matrix multiplications running under 18ms per batch in pure NumPy.
+* **Max Pooling**: $2 \times 2$ downsampling that halves spatial dimensions, reduces parameters by 75%, and expands the receptive field.
+
+| Handcrafted Filter Feature Maps | Learned Hierarchical Feature Maps |
+| :---: | :---: |
+| ![Filters](chapters/03-convolutional-neural-networks/plots/filter_visualizations.png) | ![Feature Maps](chapters/03-convolutional-neural-networks/plots/cnn_feature_maps.png) |
+
+| CNN Learning Dynamics | Confusion Matrix (10 Garments) |
+| :---: | :---: |
+| ![Curves](chapters/03-convolutional-neural-networks/plots/cnn_training_curves.png) | ![Confusion Matrix](chapters/03-convolutional-neural-networks/plots/cnn_confusion_matrix.png) |
+
+---
+
 ## Repository Structure
 
 ```text
@@ -70,21 +89,28 @@ Click on any chapter to read the textbook explanation, inspect the code, run the
 │   │   ├── notebook.ipynb                     # Interactive runnable Jupyter walkthrough
 │   │   ├── train.py                           # Training, validation & testing script
 │   │   └── plots/                             # Output charts (curves, confusion matrix, errors)
-│   └── 02-optimization-and-regularization/    # Chapter 2: Adam & Dropout
-│       ├── README.md                          # Chapter textbook guide & derivations
-│       ├── notebook.ipynb                     # Comparative interactive walkthrough
-│       ├── train.py                           # Benchmark training script (SGD vs Adam)
-│       └── plots/                             # Output charts (Adam vs SGD, Overfitting gap)
+│   ├── 02-optimization-and-regularization/    # Chapter 2: Adam & Dropout
+│   │   ├── README.md                          # Chapter textbook guide & derivations
+│   │   ├── notebook.ipynb                     # Comparative interactive walkthrough
+│   │   ├── train.py                           # Benchmark training script (SGD vs Adam)
+│   │   └── plots/                             # Output charts (Adam vs SGD, Overfitting gap)
+│   └── 03-convolutional-neural-networks/      # Chapter 3: CNNs from Scratch
+│       ├── README.md                          # Chapter textbook guide & Hubel-Wiesel inspiration
+│       ├── notebook.ipynb                     # Interactive CNN walkthrough & feature inspection
+│       ├── train.py                           # Benchmark ConvNet training script
+│       └── plots/                             # Output charts (Filters, Feature maps, Confusion matrix)
 ├── src/                                       # Core neural network toolkit
 │   ├── __init__.py
-│   ├── dataset.py                             # MNIST download, parse, normalize, batching
+│   ├── dataset.py                             # MNIST & Fashion-MNIST download, normalize, batching
 │   ├── model.py                               # 2-layer NeuralNetwork, activations, loss
 │   ├── deep_model.py                          # DeepNeuralNetwork with Dropout & Weight Decay
+│   ├── cnn.py                                 # Pure NumPy Conv2D, MaxPool2D, Flatten, ConvNet
 │   ├── optimizers.py                          # SGDWithMomentum and Adam optimizers
 │   └── visualize.py                           # Matplotlib charting utilities
 └── tests/
     ├── test_model.py                          # Gradient checks & shape tests for Chapter 1
-    └── test_chapter2.py                       # Adam, Dropout, and Deep MLP unit tests
+    ├── test_chapter2.py                       # Adam, Dropout, and Deep MLP unit tests
+    └── test_chapter3.py                       # Conv2D, MaxPool2D, and ConvNet unit tests
 ```
 
 ---
@@ -113,6 +139,9 @@ python chapters/01-first-neural-network-mnist/train.py
 
 # Run Chapter 2 (Adam Optimizer & Dropout Benchmark)
 python chapters/02-optimization-and-regularization/train.py
+
+# Run Chapter 3 (Convolutional Neural Networks from Scratch)
+python chapters/03-convolutional-neural-networks/train.py
 ```
 
 ### 3. Run the Unit Tests

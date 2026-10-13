@@ -4,6 +4,7 @@ from .dataset import load_mnist, load_fashion_mnist, FASHION_MNIST_CLASSES, get_
 from .model import NeuralNetwork, relu, softmax, cross_entropy_loss
 from .deep_model import DeepNeuralNetwork
 from .optimizers import SGDWithMomentum, Adam
+from .cnn import Conv2D, MaxPool2D, Flatten, ConvNet
 from .visualize import (
     plot_sample_digits,
     plot_training_curves,
@@ -21,6 +22,10 @@ __all__ = [
     "DeepNeuralNetwork",
     "SGDWithMomentum",
     "Adam",
+    "Conv2D",
+    "MaxPool2D",
+    "Flatten",
+    "ConvNet",
     "relu",
     "softmax",
     "cross_entropy_loss",
