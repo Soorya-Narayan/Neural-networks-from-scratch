@@ -32,6 +32,10 @@ Click on any chapter to read the textbook explanation, inspect the code, run the
 * **Architecture**: Input (784 pixels) $\to$ Hidden (128 ReLU neurons) $\to$ Output (10 Softmax classes)
 * **Performance**: Trains in ~2.3 seconds on laptop, achieving **97.9% test accuracy**.
 
+| Multi-Layer Neural Network Architecture | Single Artificial Neuron Anatomy |
+| :---: | :---: |
+| ![Network Architecture](chapters/01-first-neural-network-mnist/plots/neural_network_architecture.png) | ![Neuron Anatomy](chapters/01-first-neural-network-mnist/plots/single_neuron_anatomy.png) |
+
 | Learning Dynamics | Confusion Matrix |
 | :---: | :---: |
 | ![Curves](chapters/01-first-neural-network-mnist/plots/loss_accuracy_curves.png) | ![Matrix](chapters/01-first-neural-network-mnist/plots/confusion_matrix.png) |
@@ -46,6 +50,10 @@ Click on any chapter to read the textbook explanation, inspect the code, run the
 * **Adam Optimizer**: Combines Momentum (first moment $m_t$) and RMSProp (second moment $v_t$) with bias correction for adaptive per-parameter learning rates.
 * **Inverted Dropout ($p=0.2$)**: Randomly silences 20% of hidden neurons during training to prevent co-adaptation, with $\frac{1}{1 - p}$ scaling.
 * **L2 Weight Decay ($\lambda=10^{-4}$)**: Penalizes large weights to smooth the decision boundary.
+
+| Deep Architecture with Inverted Dropout |
+| :---: |
+| ![Dropout Architecture](chapters/02-optimization-and-regularization/plots/dropout_network_architecture.png) |
 
 | Fashion Clothing Dataset | Confusion Matrix (10 Garments) |
 | :---: | :---: |

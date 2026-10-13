@@ -43,6 +43,7 @@ Let us solve both problems from first principles.
 * **[notebook.ipynb](notebook.ipynb)**: Interactive Jupyter notebook with live previews of clothing items, neuron activation silencing, and comparative training curves.
 * **[train.py](train.py)**: Standalone benchmark script that trains Model A (SGD) vs Model B (Adam + Dropout + Weight Decay) on Fashion-MNIST.
 * **[plots/](plots/)**: Output visual benchmarks:
+  * [`plots/dropout_network_architecture.png`](plots/dropout_network_architecture.png) — Architectural comparison of a deep network with and without Inverted Dropout.
   * [`plots/sample_fashion_items.png`](plots/sample_fashion_items.png) — Sample images across all 10 clothing categories.
   * [`plots/adam_vs_sgd_comparison.png`](plots/adam_vs_sgd_comparison.png) — Side-by-side training dynamics: Adam vs SGD.
   * [`plots/generalization_gap.png`](plots/generalization_gap.png) — Visualizing the train-validation gap and how regularization controls it.
@@ -146,11 +147,30 @@ Think back to a high school group project with 5 students assigned to build a sc
 
 In neural networks, this is called **feature co-adaptation**: a few dominant neurons do all the heavy lifting, while other neurons learn nothing of value.
 
-```
-Training Pass 1 (Student B Sick):     Training Pass 2 (Student A Sick):
-[Input] ──► ( Neuron A: ACTIVE )      [Input] ──► ( Neuron A: DROPPED )
-[Input] ──► ( Neuron B: DROPPED )     [Input] ──► ( Neuron B: ACTIVE  )
-[Input] ──► ( Neuron C: ACTIVE )      [Input] ──► ( Neuron C: ACTIVE  )
+![Dropout Network Architecture](plots/dropout_network_architecture.png)
+
+```mermaid
+flowchart LR
+    subgraph StandardNet["Standard Network (Evaluation Mode)"]
+        direction TB
+        in1["Inputs (784)"] --> h1["Hidden 1 (Active)"]
+        h1 --> h2["Hidden 2 (Active)"]
+        h2 --> out1["Outputs (10)"]
+    end
+
+    subgraph DropoutNet["With Dropout p=0.20 (Training Mode)"]
+        direction TB
+        in2["Inputs (784)"] --> d1["Neuron A (ON × 1.25)"]
+        in2 -.-> d2["Neuron B (SILENCED 0)"]
+        d1 --> d3["Neuron C (ON × 1.25)"]
+        d2 -.-> d3
+        d3 --> out2["Outputs (10)"]
+    end
+
+    classDef onNode fill:#eff6ff,stroke:#3b82f6,stroke-width:2px;
+    classDef offNode fill:#fef2f2,stroke:#ef4444,stroke-width:2px,stroke-dasharray: 5 5;
+    class d1,d3 onNode;
+    class d2 offNode;
 ```
 
 #### How Dropout Solves This:

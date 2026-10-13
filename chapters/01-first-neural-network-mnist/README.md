@@ -44,6 +44,8 @@ Instead of writing millions of fragile rules, we take a radically different appr
 * **[notebook.ipynb](notebook.ipynb)**: Interactive step-by-step Jupyter notebook where you can run the code interactively.
 * **[train.py](train.py)**: Runnable standalone script that downloads the dataset, trains the model, and evaluates test performance.
 * **[plots/](plots/)**: Visualizations generated during training:
+  * [`plots/single_neuron_anatomy.png`](plots/single_neuron_anatomy.png) — Anatomy of an individual artificial neuron with biological analogies.
+  * [`plots/neural_network_architecture.png`](plots/neural_network_architecture.png) — Full multi-layer network architecture with forward & backward signal flow.
   * [`plots/sample_digits.png`](plots/sample_digits.png) — Sample raw digit images from the dataset.
   * [`plots/loss_accuracy_curves.png`](plots/loss_accuracy_curves.png) — The network learning over 10 epochs.
   * [`plots/confusion_matrix.png`](plots/confusion_matrix.png) — Heatmap showing which digits are easiest or hardest to classify.
@@ -76,23 +78,58 @@ Imagine a teacher preparing students for a final exam:
 
 ### C. The Artificial Neuron: A Dimmer Switch for Features
 
-In human biology, a brain cell receives electrical impulses through dendrites, processes them, and decides whether to send a signal down its axon. 
-An **artificial neuron** is simply the mathematical equivalent of this process:
+In human biology, a brain cell receives electrical impulses through dendrites, processes them in its cell body (soma), and decides whether to send a signal down its axon. 
+An **artificial neuron (perceptron)** is the mathematical counterpart of this biological process:
 
-```
-Inputs (784 Pixels)         Weights (Volume Dials)
-   x₁ (Pixel 1)   ──────► [ w₁ ] ──────┐
-   x₂ (Pixel 2)   ──────► [ w₂ ] ──────┼──► [ Sum: z = w·x + b ] ──► [ Activation: ReLU ] ──► Output (a)
-        ...                            │           ▲
-   x₇₈₄ (Pixel 784) ────► [ w₇₈₄ ] ────┘           │
-                                                Bias (b)
+![Anatomy of an Artificial Neuron](plots/single_neuron_anatomy.png)
+
+```mermaid
+flowchart LR
+    subgraph Inputs["Dendrites (Inputs)"]
+        x1["x₁ (Pixel 1)"]
+        x2["x₂ (Pixel 2)"]
+        xdots["..."]
+        xn["x₇₈₄ (Pixel 784)"]
+    end
+
+    subgraph Synapses["Synaptic Weights"]
+        w1["× w₁"]
+        w2["× w₂"]
+        wn["× w₇₈₄"]
+    end
+
+    subgraph Soma["Cell Body (Neuron)"]
+        bias["+ Bias (b)"]
+        sum["Summation Node<br/>z = ∑ wᵢxᵢ + b"]
+        act["Activation Function<br/>a = ReLU(z)"]
+        bias --> sum
+        sum --> act
+    end
+
+    subgraph Output["Axon Output"]
+        out["Activation a<br/>(Fires to Next Layer)"]
+    end
+
+    x1 --> w1 --> sum
+    x2 --> w2 --> sum
+    xn --> wn --> sum
+    act --> out
+
+    classDef inNode fill:#eff6ff,stroke:#3b82f6,stroke-width:2px;
+    classDef sumNode fill:#f5f3ff,stroke:#8b5cf6,stroke-width:2px;
+    classDef actNode fill:#fdf2f8,stroke:#ec4899,stroke-width:2px;
+    classDef outNode fill:#ecfdf5,stroke:#10b981,stroke-width:2px;
+    class x1,x2,xn inNode;
+    class sum sumNode;
+    class act actNode;
+    class out outNode;
 ```
 
-1. **Inputs ($x$)**: The brightness values of the 784 pixels.
-2. **Weights ($w$)**: Think of these as **volume knobs** on each connection:
+1. **Inputs ($x$)**: The incoming signals (the brightness values of each of the 784 pixels).
+2. **Weights ($w$)**: Think of these as **volume knobs** on each connection wire:
    * A **positive weight** means: *"If this pixel is lit, it strongly suggests this digit!"* (e.g. a vertical line of pixels in the center suggests a `1`).
    * A **negative weight** means: *"If this pixel is lit, it is definitely NOT this digit!"* (e.g. ink in the center rules out a `0`).
-3. **Bias ($b$)**: Think of this as the neuron's **hair-trigger threshold**. Even if all inputs are zero, how eager is this neuron to turn on?
+3. **Bias ($b$)**: Think of this as the neuron's **hair-trigger sensitivity**. Even if all inputs are zero, how eager is this neuron to turn on?
 4. **Weighted Sum ($z$)**: We multiply each pixel by its dial, sum them all up, and add the bias:
    $$z = \sum_{i=1}^{784} x_i w_i + b = (x_1 w_1 + x_2 w_2 + \dots + x_{784} w_{784}) + b$$
 
@@ -168,16 +205,51 @@ Backpropagation is the mathematical way of assigning blame:
 
 We construct a 2-layer Multi-Layer Perceptron (MLP):
 
-```
-INPUT LAYER (784)             HIDDEN LAYER (128)           OUTPUT LAYER (10)
-784 Normalized Pixels        128 Feature Detectors         10 Class Probabilities
-  ┌───────────────┐            ┌───────────────┐             ┌───────────────┐
-  │ [Pixel 1]     │───┐        │ [Neuron 1]    │───┐         │ [Digit 0]     │
-  │ [Pixel 2]     │───┼───────►│ [Neuron 2]    │───┼────────►│ [Digit 1]     │
-  │     ...       │───┤        │     ...       │───┤         │     ...       │
-  │ [Pixel 784]   │───┘        │ [Neuron 128]  │───┘         │ [Digit 9]     │
-  └───────────────┘            └───────────────┘             └───────────────┘
-                                  (with ReLU)                   (with Softmax)
+![Neural Network Architecture](plots/neural_network_architecture.png)
+
+```mermaid
+flowchart LR
+    subgraph InputLayer["INPUT LAYER (784 Neurons)"]
+        direction TB
+        p1["x₁ (Pixel 1)"]
+        p2["x₂ (Pixel 2)"]
+        pdots["... 784 Pixels ..."]
+        pn["x₇₈₄ (Pixel 784)"]
+    end
+
+    subgraph HiddenLayer["HIDDEN LAYER (128 Neurons with ReLU)"]
+        direction TB
+        h1["Neuron h₁"]
+        h2["Neuron h₂"]
+        hdots["... 128 Feature Detectors ..."]
+        hn["Neuron h₁₂₈"]
+    end
+
+    subgraph OutputLayer["OUTPUT LAYER (10 Neurons with Softmax)"]
+        direction TB
+        y0["P(Digit 0)"]
+        y1["P(Digit 1)"]
+        ydots["... 10 Probabilities ..."]
+        y9["P(Digit 9)"]
+    end
+
+    p1 -->|"Weights W₁ (100,352 parameters)"| h1
+    p1 --> h2
+    p2 --> h1
+    p2 --> h2
+    pn --> hn
+
+    h1 -->|"Weights W₂ (1,280 parameters)"| y0
+    h1 --> y1
+    h2 --> y0
+    hn --> y9
+
+    classDef inStyle fill:#eff6ff,stroke:#3b82f6,stroke-width:2px;
+    classDef hidStyle fill:#f5f3ff,stroke:#8b5cf6,stroke-width:2px;
+    classDef outStyle fill:#ecfdf5,stroke:#10b981,stroke-width:2px;
+    class p1,p2,pn inStyle;
+    class h1,h2,hn hidStyle;
+    class y0,y1,y9 outStyle;
 ```
 
 ### Parameter Breakdown
