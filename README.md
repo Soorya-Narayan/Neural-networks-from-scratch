@@ -19,7 +19,7 @@ Click on any chapter to read the textbook explanation, inspect the code, run the
 | **01** | [**Chapter 1: The First Neural Network (MNIST from Scratch)**](chapters/01-first-neural-network-mnist/) | **Dataset**: MNIST ($70,000$ digits)<br>**Model**: 2-layer MLP (784 $\to$ 128 ReLU $\to$ 10 Softmax)<br>**Optimization**: Mini-batch SGD + Momentum<br>**Test Accuracy**: **97.9%** | Completed |
 | **02** | [**Chapter 2: Modern Optimization & Regularization (Fashion-MNIST with Adam & Dropout)**](chapters/02-optimization-and-regularization/) | **Dataset**: Fashion-MNIST ($70,000$ clothing items)<br>**Focus**: Adam Optimizer, Inverted Dropout, L2 Weight Decay<br>**Model**: Deep 3-layer MLP (784 $\to$ 256 $\to$ 128 $\to$ 10)<br>**Key Result**: Controls generalization gap on complex clothing garments | Completed |
 | **03** | [**Chapter 3: Convolutional Neural Networks (CNNs from Scratch)**](chapters/03-convolutional-neural-networks/) | **Dataset**: Fashion-MNIST ($70,000$ images)<br>**Model**: 2-stage ConvNet (Conv2D $\to$ MaxPool $\to$ Conv2D $\to$ MaxPool $\to$ FC)<br>**Concepts**: 2D Convolutions, spatial invariance, im2col, hierarchical feature maps<br>**Test Accuracy**: **88.6%** | Completed |
-| **04** | **Chapter 4: Autograd Engine** | Building a micrograd-style reverse-mode automatic differentiation DAG | *Upcoming* |
+| **04** | [**Chapter 4: Autograd Engine (Automatic Differentiation from Scratch)**](chapters/04-autograd-engine/) | **Focus**: Reverse-mode automatic differentiation DAG, topological sort, multivariable chain rule<br>**Benchmark**: 100% exact gradient parity against PyTorch C++ LibTorch<br>**Model**: End-to-end MLP trained with zero manual derivatives | Completed |
 | **05** | **Chapter 5: Sequence Models (RNNs & LSTMs)** | Hidden states, backpropagation through time, text generation | *Upcoming* |
 | **06** | **Chapter 6: Attention & Transformers (Mini-GPT)** | Scaled dot-product attention, multi-head attention on Shakespeare | *Upcoming* |
 
@@ -84,6 +84,24 @@ Click on any chapter to read the textbook explanation, inspect the code, run the
 
 ---
 
+## Chapter 4: Autograd Engine (Automatic Differentiation)
+
+👉 **Read the full chapter textbook: [chapters/04-autograd-engine/README.md](chapters/04-autograd-engine/)**
+
+* **The Secret Behind PyTorch**: Dynamic computational graph construction via Directed Acyclic Graph (DAG) and topological reverse traversal.
+* **Zero Manual Calculus**: Write standard forward code; Autograd calculates exact partial derivatives for arbitrary architectures with $O(1)$ overhead.
+* **100% PyTorch Parity**: Verified against PyTorch C++ LibTorch across multi-branch arithmetic, activations, and matrix operations with zero discrepancy.
+
+| Directed Acyclic Graph (DAG) Traversal | PyTorch Gradient Parity Benchmark |
+| :---: | :---: |
+| ![DAG Diagram](chapters/04-autograd-engine/plots/computational_graph_dag.png) | ![PyTorch Parity](chapters/04-autograd-engine/plots/autograd_vs_pytorch_check.png) |
+
+| Non-Linear Decision Boundary Learned via Pure Autograd |
+| :---: |
+| ![Autograd Decision Boundary](chapters/04-autograd-engine/plots/autograd_decision_boundary.png) |
+
+---
+
 ## Repository Structure
 
 ```text
@@ -102,23 +120,30 @@ Click on any chapter to read the textbook explanation, inspect the code, run the
 │   │   ├── notebook.ipynb                     # Comparative interactive walkthrough
 │   │   ├── train.py                           # Benchmark training script (SGD vs Adam)
 │   │   └── plots/                             # Output charts (Adam vs SGD, Overfitting gap)
-│   └── 03-convolutional-neural-networks/      # Chapter 3: CNNs from Scratch
-│       ├── README.md                          # Chapter textbook guide & Hubel-Wiesel inspiration
-│       ├── notebook.ipynb                     # Interactive CNN walkthrough & feature inspection
-│       ├── train.py                           # Benchmark ConvNet training script
-│       └── plots/                             # Output charts (Filters, Feature maps, Confusion matrix)
+│   ├── 03-convolutional-neural-networks/      # Chapter 3: CNNs from Scratch
+│   │   ├── README.md                          # Chapter textbook guide & Hubel-Wiesel inspiration
+│   │   ├── notebook.ipynb                     # Interactive CNN walkthrough & feature inspection
+│   │   ├── train.py                           # Benchmark ConvNet training script
+│   │   └── plots/                             # Output charts (Filters, Feature maps, Confusion matrix)
+│   └── 04-autograd-engine/                    # Chapter 4: Autograd Engine
+│       ├── README.md                          # Chapter textbook guide & DAG traversal
+│       ├── notebook.ipynb                     # Interactive autodiff walkthrough & PyTorch check
+│       ├── train.py                           # Parity verification & non-linear classifier training
+│       └── plots/                             # Output charts (DAG graph, PyTorch check, Decision boundary)
 ├── src/                                       # Core neural network toolkit
 │   ├── __init__.py
 │   ├── dataset.py                             # MNIST & Fashion-MNIST download, normalize, batching
 │   ├── model.py                               # 2-layer NeuralNetwork, activations, loss
 │   ├── deep_model.py                          # DeepNeuralNetwork with Dropout & Weight Decay
 │   ├── cnn.py                                 # Pure NumPy Conv2D, MaxPool2D, Flatten, ConvNet
+│   ├── autograd.py                            # Reverse-mode Autograd Tensor, Module, Linear, MLP
 │   ├── optimizers.py                          # SGDWithMomentum and Adam optimizers
 │   └── visualize.py                           # Matplotlib charting utilities
 └── tests/
     ├── test_model.py                          # Gradient checks & shape tests for Chapter 1
     ├── test_chapter2.py                       # Adam, Dropout, and Deep MLP unit tests
-    └── test_chapter3.py                       # Conv2D, MaxPool2D, and ConvNet unit tests
+    ├── test_chapter3.py                       # Conv2D, MaxPool2D, and ConvNet unit tests
+    └── test_chapter4.py                       # Autograd parity tests against PyTorch C++ LibTorch
 ```
 
 ---
@@ -150,6 +175,9 @@ python chapters/02-optimization-and-regularization/train.py
 
 # Run Chapter 3 (Convolutional Neural Networks from Scratch)
 python chapters/03-convolutional-neural-networks/train.py
+
+# Run Chapter 4 (Autograd Engine & Parity Check)
+python chapters/04-autograd-engine/train.py
 ```
 
 ### 3. Run the Unit Tests

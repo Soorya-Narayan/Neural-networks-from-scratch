@@ -5,6 +5,7 @@ from .model import NeuralNetwork, relu, softmax, cross_entropy_loss
 from .deep_model import DeepNeuralNetwork
 from .optimizers import SGDWithMomentum, Adam
 from .cnn import Conv2D, MaxPool2D, Flatten, ConvNet
+from .autograd import Tensor, Parameter, Module, Linear, MLP, mse_loss, cross_entropy_loss as autograd_cross_entropy
 from .visualize import (
     plot_sample_digits,
     plot_training_curves,
@@ -26,6 +27,13 @@ __all__ = [
     "MaxPool2D",
     "Flatten",
     "ConvNet",
+    "Tensor",
+    "Parameter",
+    "Module",
+    "Linear",
+    "MLP",
+    "mse_loss",
+    "autograd_cross_entropy",
     "relu",
     "softmax",
     "cross_entropy_loss",
