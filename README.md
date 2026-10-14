@@ -88,6 +88,7 @@ Click on any chapter to read the textbook explanation, inspect the code, run the
 
 👉 **Read the full chapter textbook: [chapters/04-autograd-engine/README.md](chapters/04-autograd-engine/)**
 
+* **The Rewind Button (Recipe Metaphor)**: Explains how tracing mistakes backward through a mathematical recipe replaces manual calculus with a single `.backward()` call.
 * **The Secret Behind PyTorch**: Dynamic computational graph construction via Directed Acyclic Graph (DAG) and topological reverse traversal.
 * **Zero Manual Calculus**: Write standard forward code; Autograd calculates exact partial derivatives for arbitrary architectures with $O(1)$ overhead.
 * **100% PyTorch Parity**: Verified against PyTorch C++ LibTorch across multi-branch arithmetic, activations, and matrix operations with zero discrepancy.
