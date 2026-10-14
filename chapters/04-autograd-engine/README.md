@@ -58,54 +58,60 @@ Why not just use traditional computer algorithms to differentiate?
 
 ---
 
-## 2. Anatomy of the Computational Graph (DAG)
+## 2. Anatomy of the Computational Graph: What is a DAG?
 
-Consider the mathematical function:
-$$L = \text{ReLU}(a \cdot b + c)^2 - \frac{a}{d}$$
+The acronym **DAG** sounds intimidating, but it breaks down into three simple everyday concepts:
 
-Evaluating this function creates a **Directed Acyclic Graph (DAG)**:
+1. **D = Directed**: Every connection has a single, one-way arrow ($\to$). You always know who depends on whom.
+2. **A = Acyclic (No Loops!)**: There are **zero circular loops** ($\circlearrowleft$). A calculation never feeds back into itself. Because there are no infinite cycles, we can always untangle the graph into a straight chronological line (called **Topological Order**).
+3. **G = Graph**: A network where **nodes** are numbers (Tensors) and **edges** are mathematical operations ($+$, $\times$, $\text{ReLU}$).
 
-![Computational Graph DAG](plots/computational_graph_dag.png)
+![Clarified DAG Infographic](plots/computational_graph_dag.png)
+
+---
+
+### How Autograd Traverses a DAG in Two Phases
 
 ```mermaid
 flowchart LR
-    subgraph Inputs["Leaf Inputs"]
-        a["a = 2.0<br/>dL/da = -6.25"]
-        b["b = -1.5<br/>dL/db = 8.00"]
-        c["c = 5.0<br/>dL/dc = 4.00"]
-        d["d = 4.0<br/>dL/dd = 0.125"]
+    subgraph Phase1["PHASE 1: FORWARD PASS (Left -> Right: Compute Values)"]
+        direction LR
+        x["x = 2.0<br/>w = 3.0"] -->|"×"| z1["z₁ = x·w<br/>(6.0)"]
+        z1 -->|"+ b (-2)"| z2["z₂ = z₁ + b<br/>(4.0)"]
+        z2 -->|"ReLU"| a["a = ReLU(z₂)<br/>(4.0)"]
+        a -->|"Loss"| L["Loss L<br/>(8.0)"]
     end
 
-    subgraph Graph["Intermediate Operations"]
-        e["e = a × b<br/>(-3.0)"]
-        f["f = e + c<br/>(2.0)"]
-        g["g = ReLU(f)<br/>(2.0)"]
-        h["h = g²<br/>(4.0)"]
-        i["i = a ÷ d<br/>(0.5)"]
-    end
-
-    subgraph LossNode["Loss Output"]
-        L["L = h - i<br/>(3.5)<br/>dL/dL = 1.0"]
-    end
-
-    a --> e
-    b --> e
-    e --> f
-    c --> f
-    f --> g
-    g --> h
-    a --> i
-    d --> i
-    h --> L
-    i --> L
-
-    classDef leafStyle fill:#eff6ff,stroke:#2563eb,stroke-width:2px;
-    classDef opStyle fill:#f5f3ff,stroke:#8b5cf6,stroke-width:2px;
+    classDef fwdStyle fill:#eff6ff,stroke:#2563eb,stroke-width:2px;
     classDef lossStyle fill:#fef2f2,stroke:#dc2626,stroke-width:2px;
-    class a,b,c,d leafStyle;
-    class e,f,g,h,i opStyle;
+    class x,z1,z2,a fwdStyle;
     class L lossStyle;
 ```
+
+```mermaid
+flowchart RL
+    subgraph Phase2["PHASE 2: BACKWARD PASS (Right -> Left: Chain Rule Gradients)"]
+        direction RL
+        bL["dL/dL = 1.0<br/>(Root)"] -->|"dL/da = 4.0"| ba["dL/dz₂ = 4.0<br/>(Passes through ReLU)"]
+        ba -->|"dL/dz₁ = 4.0"| bz1["dL/dx = 4.0 × w<br/>= 12.0"]
+        bz1 --> bx["x.grad = 12.0<br/>(Ready to update dial!)"]
+    end
+
+    classDef bwdStyle fill:#fff1f2,stroke:#ef4444,stroke-width:2px;
+    class bL,ba,bz1,bx bwdStyle;
+```
+
+1. **Phase 1: Forward Pass (Left $\to$ Right)**:
+   * We feed input numbers ($x, w, b$) into math gates.
+   * Each gate calculates its output and stores a tiny recipe for its local derivative.
+   * Finally, we arrive at a single scalar **Loss $L$**.
+
+2. **Phase 2: Backward Pass (Right $\to$ Left)**:
+   * We set the seed gradient at the root: $\frac{\partial L}{\partial L} = 1.0$.
+   * We walk backwards across the arrows in exact reverse topological order.
+   * Each node multiplies incoming gradients by its local derivative and hands the result to its parents!
+
+---
 
 ### The Two Steps of Every Node:
 Every `Tensor` object stores:
