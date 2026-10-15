@@ -20,7 +20,7 @@ Click on any chapter to read the textbook explanation, inspect the code, run the
 | **02** | [**Chapter 2: Modern Optimization & Regularization (Fashion-MNIST with Adam & Dropout)**](chapters/02-optimization-and-regularization/) | **Dataset**: Fashion-MNIST ($70,000$ clothing items)<br>**Focus**: Adam Optimizer, Inverted Dropout, L2 Weight Decay<br>**Model**: Deep 3-layer MLP (784 $\to$ 256 $\to$ 128 $\to$ 10)<br>**Key Result**: Controls generalization gap on complex clothing garments | Completed |
 | **03** | [**Chapter 3: Convolutional Neural Networks (CNNs from Scratch)**](chapters/03-convolutional-neural-networks/) | **Dataset**: Fashion-MNIST ($70,000$ images)<br>**Model**: 2-stage ConvNet (Conv2D $\to$ MaxPool $\to$ Conv2D $\to$ MaxPool $\to$ FC)<br>**Concepts**: 2D Convolutions, spatial invariance, im2col, hierarchical feature maps<br>**Test Accuracy**: **88.6%** | Completed |
 | **04** | [**Chapter 4: Autograd Engine (Automatic Differentiation from Scratch)**](chapters/04-autograd-engine/) | **Focus**: Reverse-mode automatic differentiation DAG, topological sort, multivariable chain rule<br>**Benchmark**: 100% exact gradient parity against PyTorch C++ LibTorch<br>**Model**: End-to-end MLP trained with zero manual derivatives | Completed |
-| **05** | **Chapter 5: Sequence Models (RNNs & LSTMs)** | Hidden states, backpropagation through time, text generation | *Upcoming* |
+| **05** | [**Chapter 5: Sequence Models (RNNs & LSTMs from Scratch)**](chapters/05-sequence-models-rnn-lstm/) | **Dataset**: Shakespeare Plays ($65,536$ characters)<br>**Focus**: Hidden states, Backpropagation Through Time (BPTT), Forget/Input/Output gates, Temperature sampling<br>**Models**: Vanilla RNN vs LSTM side-by-side<br>**Key Result**: Additive cell highway eliminates vanishing gradients, cutting loss from 4.08 to 2.30 nats | Completed |
 | **06** | **Chapter 6: Attention & Transformers (Mini-GPT)** | Scaled dot-product attention, multi-head attention on Shakespeare | *Upcoming* |
 
 ---
@@ -103,6 +103,25 @@ Click on any chapter to read the textbook explanation, inspect the code, run the
 
 ---
 
+## Chapter 5: Sequence Models (Vanilla RNN & LSTM from Scratch)
+
+👉 **Read the full chapter textbook: [chapters/05-sequence-models-rnn-lstm/README.md](chapters/05-sequence-models-rnn-lstm/)**
+
+* **The Goldfish Problem**: Why MLPs and CNNs suffer from amnesia on temporal data, and how passing a hidden state vector $h_t$ gives networks an evolving pocket diary.
+* **The Fading Ink Bottleneck**: Why repeatedly multiplying by $W_{hh}$ in Vanilla RNNs causes gradients to exponentially vanish to zero over long sequences.
+* **The Gated Steel Safe (LSTM)**: How Hochreiter & Schmidhuber's additive cell state highway ($C_t = f_t \odot C_{t-1} + i_t \odot \tilde{C}_t$) protects long-term memories from decay.
+* **Character-Level Language Modeling**: Trained on Shakespeare's plays ($65,536$ characters), watching the model evolve from random noise to words, grammar, and dialogue.
+
+| Vanilla RNN Unrolled Across Time | Long Short-Term Memory (LSTM) Cell Anatomy |
+| :---: | :---: |
+| ![Vanilla RNN](chapters/05-sequence-models-rnn-lstm/plots/rnn_unrolled_architecture.png) | ![LSTM Anatomy](chapters/05-sequence-models-rnn-lstm/plots/lstm_cell_anatomy.png) |
+
+| Vanilla RNN vs LSTM Loss Convergence | Progression of Character Text Generation |
+| :---: | :---: |
+| ![Loss Comparison](chapters/05-sequence-models-rnn-lstm/plots/rnn_vs_lstm_loss_comparison.png) | ![Text Evolution](chapters/05-sequence-models-rnn-lstm/plots/text_generation_evolution.png) |
+
+---
+
 ## Repository Structure
 
 ```text
@@ -126,11 +145,16 @@ Click on any chapter to read the textbook explanation, inspect the code, run the
 │   │   ├── notebook.ipynb                     # Interactive CNN walkthrough & feature inspection
 │   │   ├── train.py                           # Benchmark ConvNet training script
 │   │   └── plots/                             # Output charts (Filters, Feature maps, Confusion matrix)
-│   └── 04-autograd-engine/                    # Chapter 4: Autograd Engine
-│       ├── README.md                          # Chapter textbook guide & DAG traversal
-│       ├── notebook.ipynb                     # Interactive autodiff walkthrough & PyTorch check
-│       ├── train.py                           # Parity verification & non-linear classifier training
-│       └── plots/                             # Output charts (DAG graph, PyTorch check, Decision boundary)
+│   ├── 04-autograd-engine/                    # Chapter 4: Autograd Engine
+│   │   ├── README.md                          # Chapter textbook guide & DAG traversal
+│   │   ├── notebook.ipynb                     # Interactive autodiff walkthrough & PyTorch check
+│   │   ├── train.py                           # Parity verification & non-linear classifier training
+│   │   └── plots/                             # Output charts (DAG graph, PyTorch check, Decision boundary)
+│   └── 05-sequence-models-rnn-lstm/           # Chapter 5: Sequence Models (RNN & LSTM)
+│       ├── README.md                          # Chapter textbook guide, goldfish hook & gate equations
+│       ├── notebook.ipynb                     # Interactive sequence walkthrough & temperature sampling
+│       ├── train.py                           # Side-by-side training & generation script
+│       └── plots/                             # Output charts (RNN unrolled, LSTM cell, Loss curve, Evolution)
 ├── src/                                       # Core neural network toolkit
 │   ├── __init__.py
 │   ├── dataset.py                             # MNIST & Fashion-MNIST download, normalize, batching
@@ -138,13 +162,15 @@ Click on any chapter to read the textbook explanation, inspect the code, run the
 │   ├── deep_model.py                          # DeepNeuralNetwork with Dropout & Weight Decay
 │   ├── cnn.py                                 # Pure NumPy Conv2D, MaxPool2D, Flatten, ConvNet
 │   ├── autograd.py                            # Reverse-mode Autograd Tensor, Module, Linear, MLP
+│   ├── rnn.py                                 # Character-level VanillaRNN and LSTM from scratch
 │   ├── optimizers.py                          # SGDWithMomentum and Adam optimizers
 │   └── visualize.py                           # Matplotlib charting utilities
 └── tests/
     ├── test_model.py                          # Gradient checks & shape tests for Chapter 1
     ├── test_chapter2.py                       # Adam, Dropout, and Deep MLP unit tests
     ├── test_chapter3.py                       # Conv2D, MaxPool2D, and ConvNet unit tests
-    └── test_chapter4.py                       # Autograd parity tests against PyTorch C++ LibTorch
+    ├── test_chapter4.py                       # Autograd parity tests against PyTorch C++ LibTorch
+    └── test_chapter5.py                       # VanillaRNN & LSTM gradient checks, BPTT, and sampling
 ```
 
 ---
@@ -179,6 +205,9 @@ python chapters/03-convolutional-neural-networks/train.py
 
 # Run Chapter 4 (Autograd Engine & Parity Check)
 python chapters/04-autograd-engine/train.py
+
+# Run Chapter 5 (Sequence Models: Vanilla RNN vs LSTM)
+python chapters/05-sequence-models-rnn-lstm/train.py
 ```
 
 ### 3. Run the Unit Tests
